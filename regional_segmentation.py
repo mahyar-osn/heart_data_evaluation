@@ -1,4 +1,119 @@
 import numpy as np
+import pandas as pd
+
+
+class Regionalize:
+    def __init__(self, data_frame, region_indx):
+        self._df = data_frame
+        self._indx = region_indx
+        self._array_size = region_indx.shape[0]
+        self._array = np.zeros((self._array_size, data_frame.shape[1]))
+        self._header = list(self._df.columns.values)
+
+    def get_data(self):
+        counter = 0
+        for i in self._df['Region']:
+            if i in self._indx:
+                self._array[counter] = self._df[self._df['Region'] == i]
+                counter += 1
+
+        return pd.DataFrame(self._array, columns=self._header)
+
+
+def get_regions(df):
+
+    region_dict = dict()
+    # OFT
+    indx = OFT()
+    REG = Regionalize(df, indx)
+    region_dict['OFT'] = REG.get_data()
+    del indx, REG
+    # OFT_Dorsal
+    indx = OFT_Dorsal()
+    REG = Regionalize(df, indx)
+    region_dict['OFT_Dorsal'] = REG.get_data()
+    del indx, REG
+    # OFT_Ventral
+    indx = OFT_Ventral()
+    REG = Regionalize(df, indx)
+    region_dict['OFT_Ventral'] = REG.get_data()
+    del indx, REG
+    # VNT
+    indx = VNT()
+    REG = Regionalize(df, indx)
+    region_dict['VNT'] = REG.get_data()
+    del indx, REG
+    # VNT_Dorsal
+    indx = VNT_Dorsal()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Dorsal'] = REG.get_data()
+    del indx, REG
+    # VNT_Dorsal
+    indx = VNT_Dorsal()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Dorsal'] = REG.get_data()
+    del indx, REG
+    # VNT_Mid_Large
+    indx = VNT_Mid_Large()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Mid_Large'] = REG.get_data()
+    del indx, REG
+    # VNT_Mid_Large_Dorsal
+    indx = VNT_Mid_Large_Dorsal()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Mid_Large_Dorsal'] = REG.get_data()
+    del indx, REG
+    # VNT_Mid_Large_Ventral
+    indx = VNT_Mid_Large_Ventral()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Mid_Large_Ventral'] = REG.get_data()
+    del indx, REG
+    # VNT_Caudal
+    indx = VNT_Caudal()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Caudal'] = REG.get_data()
+    del indx, REG
+    # VNT_Caudal_Dorsal
+    indx = VNT_Caudal_Dorsal()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Caudal_Dorsal'] = REG.get_data()
+    del indx, REG
+    # VNT_Caudal_Ventral
+    indx = VNT_Caudal_Ventral()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Caudal_Ventral'] = REG.get_data()
+    del indx, REG
+    # VNT_Mid_Small
+    indx = VNT_Mid_Small()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Mid_Small'] = REG.get_data()
+    del indx, REG
+    # VNT_Mid_Small_Dorsal
+    indx = VNT_Mid_Small_Dorsal()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Mid_Small_Dorsal'] = REG.get_data()
+    del indx, REG
+    # VNT_Mid_Small_Ventral
+    indx = VNT_Mid_Small_Ventral()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Mid_Small_Ventral'] = REG.get_data()
+    del indx, REG
+    # VNT_Cranial
+    indx = VNT_Cranial()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Cranial'] = REG.get_data()
+    del indx, REG
+    # VNT_Cranial_Dorsal
+    indx = VNT_Cranial_Dorsal()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Cranial_Dorsal'] = REG.get_data()
+    del indx, REG
+    # VNT_Cranial_Ventral
+    indx = VNT_Cranial_Ventral()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Cranial_Ventral'] = REG.get_data()
+
+    return region_dict
 
 
 def OFT():
