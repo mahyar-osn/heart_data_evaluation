@@ -4,10 +4,13 @@ import pandas as pd
 import numpy as np
 
 import hickle as hkl
-
 import json
 
+import read_write_data as io
+
+
 root = '/hpc/nebr002/Fitting/Fit/FieldFitting/Data'
+input_csv = 'evaluated_raw_field_elements_included.csv'
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -47,27 +50,6 @@ def get_bin_average(data, sub):
         os.makedirs(output_dir)
     df.to_csv((os.path.join(output_dir, 'sorted_data.csv')), sep=',')
 
-    # a = df.set_index("Bin").groupby("Element")[["Cell Number"]].apply(lambda x: x["Cell Number"].to_dict())
-    #
-    # element_dict = dict()
-    # for x in range(1, 25):
-    #     element_dict['e{0}'.format(x)] = dict()
-    #     for y in range(1, 26):
-    #         d = {'bin{0}'.format(y): list()}
-    #         element_dict['e{0}'.format(x)].update(d)
-    #
-    # index = 0
-    # for elem in range(1, 25):
-    #     for bin in range(1, 26):
-    #         featurelist = list()
-    #         for feature in header[2:]:
-    #
-    #             featurelist.append(df.iloc[index][feature])
-    #             values = df.iloc[index][feature]
-    #             element_dict['e{0}'.format(elem)]['bin{0}'.format(bin)].append(values)
-    #
-    #         index += 1
-
     return None
 
 
@@ -83,11 +65,11 @@ def process_data(sub):
     datalist = list()
 
     for field in fieldNames:
-        fname = setup_path(subject, field)
+        fname = io.setup_path(os.path.join(root, subject), field, input_csv)
         if field == 'Anisotropy':
-            d = get_raw_field(fname)
+            d = io.get_raw_field(fname)
         else:
-            d = get_raw_field(fname, use_cols=[field])
+            d = io.get_raw_field(fname, use_cols=[field])
         datalist.append(d)
 
     data[:, 0:5] = datalist[0]
@@ -105,40 +87,7 @@ def process_data(sub):
 
 
 def _get_number_of_rows(sub, field):
-    return get_raw_field(setup_path(sub, field)).shape[0]
-
-
-def setup_path(subject, field):
-    csv_field_file = os.path.join(root, subject, field, 'FieldFit', 'evaluated_raw_field_elements_included.csv')
-
-    return csv_field_file
-
-
-def get_raw_field(filename, use_cols=None):
-    """
-
-    :param filename:
-    :param use_cols:
-    :return:
-    """
-
-    return np.asarray(read_csv(filename, sep=',', header=0, skiprow=None, use_cols=use_cols), dtype=np.float64)
-
-
-def read_csv(filename, sep=',', header=None, skiprow=None, use_cols=None):
-    """
-    Method to read csv using panda lib.
-
-    :param filename: This is the path to the csv file
-    :param sep: This is the delimiter used to separate data in the csv file
-    :param header: Specify the header row number.
-    :return: Data frame.
-    """
-
-    fn = filename
-    fr = pd.read_csv(fn, sep=sep, header=header, skiprows=skiprow, usecols=use_cols)
-
-    return fr
+    return io.get_raw_field(io.setup_path(os.path.join(root, subject), field, input_csv)).shape[0]
 
 
 def make_bins(d, bins=5):
@@ -206,7 +155,7 @@ def make_bins(d, bins=5):
 
 
 if __name__ == '__main__':
-    subject = '52'
+    subject = '59'
     data_root_path = '/hpc/mosa004/Nazanin_Heart_fitting/Heart_2/FieldFitting/evaluate/dataset'
     data_file = os.path.join(data_root_path, subject, 'data.hkl')
 
