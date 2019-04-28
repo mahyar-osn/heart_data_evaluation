@@ -6,23 +6,22 @@ class Regionalize:
     def __init__(self, data_frame, region_indx):
         self._df = data_frame
         self._indx = region_indx
-        self._array_size = region_indx.shape[0]
+        self._array_size = region_indx.shape[0] * 4
         self._array = np.zeros((self._array_size, data_frame.shape[1]))
         self._header = list(self._df.columns.values)
 
     def get_data(self):
         counter = 0
-        for i in self._df['Region']:
-            if i in self._indx:
-                self._array[counter] = self._df[self._df['Region'] == i]
-                counter += 1
-
+        for region in self._indx:
+            self._array[counter:counter + 4] = self._df[self._df['Region'] == region]
+            counter += 4
         return pd.DataFrame(self._array, columns=self._header)
 
 
 def get_regions(df):
 
     region_dict = dict()
+
     # OFT
     indx = OFT()
     REG = Regionalize(df, indx)
@@ -112,6 +111,27 @@ def get_regions(df):
     indx = VNT_Cranial_Ventral()
     REG = Regionalize(df, indx)
     region_dict['VNT_Cranial_Ventral'] = REG.get_data()
+    del indx, REG
+    # VNT_Mid_Small_2_Dorsal
+    indx = VNT_Mid_Small_2_Dorsal()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Mid_Small_2_Dorsal'] = REG.get_data()
+    del indx, REG
+    # VNT_Mid_Small_2_Ventral
+    indx = VNT_Mid_Small_2_Ventral()
+    REG = Regionalize(df, indx)
+    region_dict['VNT_Mid_Small_2_Ventral'] = REG.get_data()
+    del indx, REG
+    # Ventral_Point
+    indx = Ventral_Point()
+    REG = Regionalize(df, indx)
+    region_dict['Ventral_Point'] = REG.get_data()
+    del indx, REG
+    # Dorsal_Point
+    indx = Dorsal_Point()
+    REG = Regionalize(df, indx)
+    region_dict['Dorsal_Point'] = REG.get_data()
+    del indx, REG
 
     return region_dict
 
@@ -217,6 +237,29 @@ def VNT_Cranial_Dorsal():
 def VNT_Cranial_Ventral():
     return np.linspace(226, 275, 50, dtype=np.int)
 
+
+def VNT_Mid_Small_2_Dorsal():
+    a = np.linspace(201, 225, 25, dtype=np.int)
+    b = np.linspace(276, 325, 50, dtype=np.int)
+    c = np.linspace(376, 400, 25, dtype=np.int)
+    return np.hstack((a, b, c))
+
+
+def VNT_Mid_Small_2_Ventral():
+    a = np.linspace(226, 275, 50, dtype=np.int)
+    b = np.linspace(326, 375, 50, dtype=np.int)
+    return np.hstack((a, b))
+
+
+def Ventral_Point():
+    return np.asarray([239, 240, 244, 245, 249, 250, 261, 262, 263, 266, 267, 268, 271, 272, 273, 329, 330, 334,
+                       335, 351, 352, 356, 357, 361, 362], dtype=np.int)
+
+
+def Dorsal_Point():
+    return np.asarray([201, 202, 206, 207, 211, 212, 216, 217, 221, 222, 279, 280, 284, 285, 289, 290, 294, 295,
+                       299, 300, 301, 302, 306, 307, 311, 312, 316, 317, 321, 322, 379, 380, 384, 385, 389, 390,
+                       394, 395, 399, 400], dtype=np.int)
 
 def make_pd_indx(region):
     return np.asarray([x - 1 for x in region], dtype=np.int)
