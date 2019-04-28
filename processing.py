@@ -43,7 +43,7 @@ def get_bin_average(data, sub):
               'Perimeter', 'Shape_VA3d', 'Volume3d', 'Width3d']
 
     df = pd.DataFrame(new_data, columns=header)
-    df[['Element', 'Bin', 'Cell Number']] = df[['Element', 'Bin', 'Cell Number']].astype(np.int8)
+    df[['Element', 'Bin', 'Cell Number']] = df[['Element', 'Bin', 'Cell Number']].astype(np.int)
 
     output_dir = os.path.join('dataset', sub)
     if not os.path.exists(output_dir):
