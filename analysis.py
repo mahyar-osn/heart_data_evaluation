@@ -7,14 +7,18 @@ from scipy import stats
 
 from statsmodels.multivariate.manova import MANOVA
 from statsmodels.genmod.generalized_linear_model import GLM
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
 
 # from sklearn.cluster import KMeans
 # import matplotlib.pyplot as plt
 
+import sys
+sys.path.append('/hpc/mosa004/Lung/Haris_Paper/basic_stats_and_plotting')
 from src.analysis import CSV, Plotting
 from regional_segmentation import get_regions
 
-pl = Plotting()
+# pl = Plotting()
 
 
 def setup_data():
@@ -22,8 +26,8 @@ def setup_data():
     config = dict()
     config['root'] = './dataset'
     config['file_name'] = 'full_data.csv'
-    # config['variables'] = ['Cell Number', 'Volume3d', 'Time', 'Region']
-    config['variables'] = ['Element', 'Bin', 'Cell Number', 'Anisotropy', 'Area3d', 'Elongation', 'EqDiameter',
+    # config['variables'] = ['CellNumber', 'Volume3d', 'Time', 'Region']
+    config['variables'] = ['Element', 'Bin', 'CellNumber', 'Anisotropy', 'Area3d', 'Elongation', 'EqDiameter',
                            'FeretShape3d', 'Length3d', 'Orientation2Phi', 'Orientation2Theta', 'OrientationPhi',
                            'OrientationTheta', 'Perimeter', 'Shape_VA3d', 'Volume3d', 'Width3d', 'Time', 'Region']
     config['output_dir'] = '/hpc/mosa004/Nazanin_Heart_fitting/Heart_2/FieldFitting/evaluate/output/img'
@@ -37,6 +41,7 @@ def setup_data():
     df = csv.readCSV(header=0, drop=True, usecols=config['variables'])
 
     return df, config
+    # return config
 
 
 def write_pickle(d, f):
@@ -108,6 +113,29 @@ class Statistics:
 
         return t, p
 
+    @staticmethod
+    def multivariateLinearRegression(X, y, data, save=False, path=None, useSklearn=False):
+        """
+
+        :param X:
+        :param y:
+        :param data:
+        :param save:
+        :param path:
+        :param useSklearn:
+        :return:
+        """
+
+        X, Y = np.asarray(data[X]), np.asarray(data[y])
+        # X = X.reshape(-1, 1)
+
+        #  remove row if NaN
+        # X, Y = X[~np.isnan(X).reshape(-1, 1).any(axis=1)], Y[~np.isnan(Y).reshape(-1, 1).any(axis=1)]
+
+        X = sm.add_constant(X)
+        est = sm.OLS(Y, X).fit()
+        print(est.summary())
+
 
 class Plot:
 
@@ -131,12 +159,12 @@ if __name__ == '__main__':
     stat = Statistics()
 
     """ Preparation """
-    x, y = 'Time', 'Cell Number'
+    x, y = 'Time', 'CellNumber'
     hue = 'Region Name'
 
     df, config = setup_data()
     dfname = './dataset/pickle_dataset/full_data.pkl'
-    # write_pickle(df, dfname)
+    write_pickle(df, dfname)
     region_dict = read_pickle(dfname)
 
     data_dorsal = make_region_column(region_dict, 'Dorsal_Point')
@@ -145,34 +173,40 @@ if __name__ == '__main__':
     data_caudal = make_region_column(region_dict, 'VNT_Caudal')
     full_data = combine_data([data_dorsal, data_ventral, data_oft, data_caudal])
 
-    if x is "Cell Number" or y is "Cell Number":
-        pass
-    else:
-        data_dorsal = data_dorsal[(data_dorsal.T != 0).all()]
-        data_ventral = data_ventral[(data_ventral.T != 0).all()]
-        data_oft = data_oft[(data_oft.T != 0).all()]
-        data_caudal = data_caudal[(data_caudal.T != 0).all()]
-        full_data = full_data[(full_data.T != 0).all()]
+    # if x is "CellNumber" or y is "CellNumber":
+    #     pass
+    # else:
+    #     data_dorsal = data_dorsal[(data_dorsal != 0).all()]
+    #     data_ventral = data_ventral[(data_ventral.T != 0).all()]
+    #     data_oft = data_oft[(data_oft.T != 0).all()]
+    #     data_caudal = data_caudal[(data_caudal.T != 0).all()]
+    #     full_data = full_data[(full_data.T != 0).all()]
 
-    data_dorsal = data_dorsal[(data_dorsal.T != 0).all()]
-    data_ventral = data_ventral[(data_ventral.T != 0).all()]
-    data_oft = data_oft[(data_oft.T != 0).all()]
-    data_caudal = data_caudal[(data_caudal.T != 0).all()]
-    full_data = full_data[(full_data.T != 0).all()]
+    # data_dorsal = data_dorsal[(data_dorsal.T != 0).all()]
+    # data_ventral = data_ventral[(data_ventral.T != 0).all()]
+    # data_oft = data_oft[(data_oft.T != 0).all()]
+    # data_caudal = data_caudal[(data_caudal.T != 0).all()]
+    full_data = full_data[(full_data.CellNumber != 0)]
 
     d_dorsal_timewise = get_timewise_data(data_dorsal)
     d_ventral_timewise = get_timewise_data(data_ventral)
     d_oft_timewise = get_timewise_data(data_oft)
     d_caudal_timewise = get_timewise_data(data_caudal)
+    full_timewise = get_timewise_data(full_data)
+
+    X = ['Region', 'Time']
+    y = ['Orientation2Phi']
+    stat.multivariateLinearRegression(X, y, full_timewise)
+
 
     """ Statistics """
-    # t, p = stat.ind_ttest(d_caudal_timewise['T1']['Cell Number'], d_oft_timewise['T1']['Cell Number'])
+    # t, p = stat.ind_ttest(d_caudal_timewise['T1']['CellNumber'], d_oft_timewise['T1']['CellNumber'])
     # print("T = ", t, "| ", "P = ", p)
-    # t, p = stat.ind_ttest(d_caudal_timewise['T2']['Cell Number'], d_oft_timewise['T2']['Cell Number'])
+    # t, p = stat.ind_ttest(d_caudal_timewise['T2']['CellNumber'], d_oft_timewise['T2']['CellNumber'])
     # print("T = ", t, "| ", "P = ", p)
-    # t, p = stat.ind_ttest(d_caudal_timewise['T3']['Cell Number'], d_oft_timewise['T3']['Cell Number'])
+    # t, p = stat.ind_ttest(d_caudal_timewise['T3']['CellNumber'], d_oft_timewise['T3']['CellNumber'])
     # print("T = ", t, "| ", "P = ", p)
-    # t, p = stat.ind_ttest(d_caudal_timewise['T4']['Cell Number'], d_oft_timewise['T4']['Cell Number'])
+    # t, p = stat.ind_ttest(d_caudal_timewise['T4']['CellNumber'], d_oft_timewise['T4']['CellNumber'])
     # print("T = ", t, "| ", "P = ", p)
 
     """ Plotting """
@@ -191,7 +225,7 @@ if __name__ == '__main__':
     print('done')
 
 """ Kmeans & Manova (TEMP) """
-# X = df[['Cell Number', 'Volume3d']].to_numpy()
+# X = df[['CellNumber', 'Volume3d']].to_numpy()
 # kmeans = KMeans(n_clusters=4)
 # kmeans.fit(X)
 # y_kmeans = kmeans.predict(X)
